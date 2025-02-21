@@ -2,8 +2,15 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 import os
 
+# print("MONGO_URI = " + os.getenv("MONGO_URI"))
+
+# Check if MONGO_URI is set, otherwise default to localhost
+mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/student_db")
+
+# Connect to MongoDB using the URI
+client = MongoClient(mongo_uri)
+
 # Set up MongoDB connection
-client = MongoClient("mongodb://localhost:27017/")
 db = client["student_db"]
 students_collection = db["students"]
 

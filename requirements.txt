@@ -8,3 +8,4 @@ flask
 uvicorn
 tinydb
 pymongo
+dotenv
