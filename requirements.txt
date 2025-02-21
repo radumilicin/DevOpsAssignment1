@@ -7,3 +7,4 @@ connexion[flask]
 flask  
 uvicorn
 tinydb
+pymongo

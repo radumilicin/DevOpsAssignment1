@@ -1,0 +1,52 @@
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+import os
+
+# Set up MongoDB connection
+client = MongoClient("mongodb://localhost:27017/")
+db = client["student_db"]
+students_collection = db["students"]
+
+def add(student):
+    print("Adding student to MongoDB")
+    
+    # Check if student already exists
+    existing_student = students_collection.find_one({
+        "first_name": student.first_name,
+        "last_name": student.last_name
+    })
+    
+    if existing_student:
+        return 'already exists', 409
+
+    # Insert student and return the generated ID
+    result = students_collection.insert_one(student.to_dict())
+    student.student_id = str(result.inserted_id)
+    
+    return student.student_id
+
+def get_by_id(student_id):
+    try:
+        # student = students_collection.find_one({"_id": ObjectId(student_id)})
+        student = students_collection.find_one({"student_id": student_id})
+        if not student:
+            return 'not found', 404
+        
+        # Convert ObjectId to string for JSON compatibility
+        student["_id"] = str(student["_id"])     
+        return student
+
+    except Exception as e:
+        return str(e), 400
+
+def delete(student_id):
+    try:
+        result = students_collection.delete_one({"student_id": student_id})
+        
+        if result.deleted_count == 0:
+            return 'not found', 404
+        
+        return student_id
+    
+    except Exception as e:
+        return str(e), 400

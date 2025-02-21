@@ -1,7 +1,7 @@
 import connexion
 import six
 from swagger_server.models.student import Student
-from swagger_server.service.student_service import *
+from swagger_server.service.student_service_mongo import *
 from swagger_server import util
 from flask import jsonify
 
