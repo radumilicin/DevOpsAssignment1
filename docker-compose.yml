@@ -1,12 +1,13 @@
-version: '3'
+version: "3.8"
+
 services:
   student_service:
-    image: nginx
+    build: .
     restart: unless-stopped
     depends_on:
       - mongo
     environment:
-      MONGO_URI: mongodb://mongo:27017
+      MONGO_URI: mongodb://mongo:27017/student_db  # Corrected MongoDB URI
     ports:
       - "8080:8080"
 
@@ -15,3 +16,8 @@ services:
     image: mongo:4
     ports:
       - "27017:27017"
+    volumes:
+      - mongo_data:/data/db  # Persistent storage for MongoDB
+
+volumes:
+  mongo_data:
