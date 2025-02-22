@@ -3,11 +3,17 @@ on: [push]
 env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
-  MONGO_URI: mongodb://localhost:27017
+  MONGO_URI: mongodb://mongo:27017
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        options: --health-cmd='curl --silent --fail http://localhost:27017' --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v2
 
