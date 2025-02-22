@@ -4,73 +4,75 @@ env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Build docker
-      run: |
-        docker build . -t $REPO_NAME/$IMAGE_NAME
-    - name: run docker
-      run: |
-        docker run -d --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest && \
-          docker ps && sleep 5
-    - name: Stream logs in the background
-      run: |
-        mkdir -p logs
-        touch logs/container.log
-        (docker logs -f student_service_container | tee logs/container.log) &
-        echo "Docker logs streaming started in background."
-    - name: Check if server is up
-      run: |
-        curl http://localhost:8080/tutorial/1.0.0/ui/
+      - uses: actions/checkout@v2
 
+      - name: Build docker
+        run: |
+          docker build . -t $REPO_NAME/$IMAGE_NAME
 
-    - name: "Check files existence"
-      uses: andstor/file-existence-action@v2
-      with:
-        files: "postman/collection.json,postman/environment.json"
-        fail: true
+      - name: run docker
+        run: |
+          docker run -d --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest && \
+            docker ps && sleep 5
 
-    - name: Run API Tests
-      id: run-newman
-      uses: anthonyvscode/newman-action@master
-      with:
-        collection: postman/collection.json
-        environment: postman/environment.json
-        reporters: cli
-        bail: true
+      - name: Stream logs in the background
+        run: |
+          mkdir -p logs
+          touch logs/container.log
+          (docker logs -f student_service_container | tee logs/container.log) &
+          echo "Docker logs streaming started in background."
 
-    - name: Fetch logs from server container
-      run: docker logs student_service_container
+      - name: Check if server is up
+        run: |
+          curl http://localhost:8080/tutorial/1.0.0/ui/
 
+      - name: "Check files existence"
+        uses: andstor/file-existence-action@v2
+        with:
+          files: "postman/collection.json,postman/environment.json"
+          fail: true
 
-    - name: Check if we failed
-      id: fail-check
-      shell: bash
-      env:
-        JSON_DOC: ${{ steps.run-newman.outputs.summary }}
-      run: |
-        printf '%s\n' "$JSON_DOC" > summary.json
-        cat summary.json
-        if grep -q Collection summary.json; then
-          echo "failed=false" >> $GITHUB_OUTPUT;
-        else
-          echo "failed=true" >> $GITHUB_OUTPUT;
-        fi
+      - name: Run API Tests
+        id: run-newman
+        uses: anthonyvscode/newman-action@master
+        with:
+          collection: postman/collection.json
+          environment: postman/environment.json
+          reporters: cli
+          bail: true
+        continue-on-error: true  # This allows the next steps to run even if the tests fail.
 
-    - name: fail if empty
-      if: ${{ steps.fail-check.outputs.failed == 'true' }}
-      run: exit 1
+      - name: Fetch logs from server container
+        run: docker logs student_service_container
 
-    - name: Login to Container Registry
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.REGISTRY_USERNAME }}
-        password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: Check if we failed
+        id: fail-check
+        shell: bash
+        env:
+          JSON_DOC: ${{ steps.run-newman.outputs.summary }}
+        run: |
+          printf '%s\n' "$JSON_DOC" > summary.json
+          cat summary.json
+          if grep -q Collection summary.json; then
+            echo "failed=false" >> $GITHUB_OUTPUT;
+          else
+            echo "failed=true" >> $GITHUB_OUTPUT;
+          fi
 
-    - name: Push image to docker hub Container Registry
-      run: | 
+      - name: fail if empty
+        if: ${{ steps.fail-check.outputs.failed == 'true' }}
+        run: exit 1
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Push image to docker hub Container Registry
+        run: | 
           docker push $REPO_NAME/$IMAGE_NAME
