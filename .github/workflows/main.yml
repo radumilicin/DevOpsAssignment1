@@ -20,7 +20,7 @@ jobs:
     - name: Capture and Print Logs
       run: |
         echo "Fetching logs from student_service_container..."
-        docker logs student_service_container
+        docker logs student_service
 
     - name: "Check files existence"
       uses: andstor/file-existence-action@v2
