@@ -16,30 +16,30 @@ students_collection = db["students"]
 
 def add(student):
     print("Adding student to MongoDB")
-    
+
     # Check if student already exists
     existing_student = students_collection.find_one({
-        "first_name": student.first_name,
-        "last_name": student.last_name
+        "student_id": student.student_id
     })
+
+    print("existing student: " + str(existing_student))
     
     if existing_student:
         return 'already exists', 409
 
     # Insert student and return the generated ID
     result = students_collection.insert_one(student.to_dict())
-    student.student_id = str(result.inserted_id)
+    print("result = " + str(result))
+    # student.student_id = str(result.inserted_id)
     
-    return student.student_id
+    return student.student_id, 200
 
 def get_by_id(student_id):
     try:
-        # student = students_collection.find_one({"_id": ObjectId(student_id)})
         student = students_collection.find_one({"student_id": student_id})
         if not student:
             return 'not found', 404
         
-        # Convert ObjectId to string for JSON compatibility
         student["_id"] = str(student["_id"])     
         return student
 
