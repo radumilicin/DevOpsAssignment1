@@ -23,6 +23,10 @@ jobs:
         touch logs/container.log
         (docker logs -f student_service_container | tee logs/container.log) &
         echo "Docker logs streaming started in background."
+    - name: Check if server is up
+      run: |
+        curl http://localhost:8080/tutorial/1.0.0/ui/
+
 
     - name: "Check files existence"
       uses: andstor/file-existence-action@v2
