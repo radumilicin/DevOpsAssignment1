@@ -4,8 +4,6 @@ env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
   MONGO_URI: mongodb://mongo:27017
-  DOCKER_LOGIN: docker login -u udar305
-  DOCKER_PAT: dckr_pat_WVLt578hIwCJNE4zUgTtWnZyqhA
 
 jobs:
   build:
