@@ -17,10 +17,12 @@ jobs:
       run: |
         docker run -d --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest && \
           docker ps && sleep 5
-    - name: Capture and Print Logs
+    - name: Stream logs in the background
       run: |
-        echo "Fetching logs from student_service_container..."
-        docker logs -f student_service_container &
+        mkdir -p logs
+        touch logs/container.log
+        (docker logs -f student_service_container | tee logs/container.log) &
+        echo "Docker logs streaming started in background."
 
     - name: "Check files existence"
       uses: andstor/file-existence-action@v2
