@@ -43,6 +43,10 @@ jobs:
         reporters: cli
         bail: true
 
+    - name: Fetch logs from server container
+      run: docker logs student_service_container
+
+
     - name: Check if we failed
       id: fail-check
       shell: bash
