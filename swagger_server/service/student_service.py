@@ -24,7 +24,7 @@ def add(student=None):
     print("adding student")
     doc_id = student_db.insert(student.to_dict())
     student.student_id = doc_id
-    return student.student_id
+    return student.student_id 
 
 
 def get_by_id(student_id=None, subject=None):
