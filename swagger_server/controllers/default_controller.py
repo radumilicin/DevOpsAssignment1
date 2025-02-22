@@ -15,6 +15,7 @@ def add_student(body=None):
     print("in add_student")
     if connexion.request.content_type == 'application/json': 
         try:
+            print("in try")
             # Get JSON directly from the request body
             student = Student.from_dict(body)
             student_id, status_code = add(student)  # Unpack tuple correctly
