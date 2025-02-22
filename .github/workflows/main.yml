@@ -3,6 +3,7 @@ on: [push]
 env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
+  MONGO_URI: mongodb://localhost:27017
 
 jobs:
   build:
