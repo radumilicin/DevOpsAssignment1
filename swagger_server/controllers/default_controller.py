@@ -12,6 +12,7 @@ def add_student(body=None):
     :type body: dict | bytes
     :rtype: float
     """
+    print("in add_student")
     if connexion.request.content_type == 'application/json': 
         try:
             # Get JSON directly from the request body
