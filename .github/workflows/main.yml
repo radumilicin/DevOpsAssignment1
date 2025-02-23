@@ -22,7 +22,7 @@ jobs:
 
       - name: run docker
         run: |
-          docker run -d --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest && \
+          docker run -d -e MONGO_URI="${{ env.MONGO_URI }}" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest && \
             docker ps
 
       - name: Wait for MongoDB to be ready
