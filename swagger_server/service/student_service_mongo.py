@@ -44,6 +44,8 @@ def get_by_id(student_id):
 
         if not student:
             return 'not found', 404
+        else:
+            print(student)
         student["_id"] = str(student["_id"])     
         return student
 
