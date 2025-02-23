@@ -7,6 +7,8 @@ import os
 # Check if MONGO_URI is set, otherwise default to localhost
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/student_db")
 
+print("mongo_uri = " + os.getenv("MONGO_URI"))
+
 # Connect to MongoDB using the URI
 client = MongoClient(mongo_uri)
 
@@ -29,7 +31,8 @@ def add(student):
 
     # Insert student and return the generated ID
     result = students_collection.insert_one(student.to_dict())
-    print("result = " + str(result))
+
+    # print("result = " + str(result))
     # student.student_id = str(result.inserted_id)
     
     return student.student_id, 200

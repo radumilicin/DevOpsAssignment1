@@ -4,6 +4,7 @@ env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
   MONGO_URI: mongodb://mongo:27017
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,7 +13,6 @@ jobs:
         image: mongo:latest
         ports:
           - 27017:27017
-        # options: --health-cmd='curl--fail http://localhost:27017' --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v2
 
@@ -23,7 +23,15 @@ jobs:
       - name: run docker
         run: |
           docker run -d --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest && \
-            docker ps && sleep 5
+            docker ps
+
+      - name: Wait for MongoDB to be ready
+        run: |
+          until curl --silent --fail http://localhost:27017; do
+            echo "Waiting for MongoDB to be ready..."
+            sleep 5
+          done
+          echo "MongoDB is ready!"
 
       - name: Stream logs in the background
         run: |
