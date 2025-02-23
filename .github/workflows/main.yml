@@ -32,14 +32,15 @@ jobs:
         run: |
           docker run -d --network="host" -e MONGO_URI="mongodb://localhost:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
 
-          
+
       - name: Wait for MongoDB to Be Ready
         run: |
-          until mongosh --host localhost --eval "db.runCommand({ ping: 1 })"; do
+          until docker exec $(docker ps -q --filter ancestor=mongo) mongo --eval "db.runCommand({ ping: 1 })"; do
             echo "Waiting for MongoDB to be ready..."
             sleep 5
           done
           echo "MongoDB is ready!"
+
 
       - name: Print MongoDB URI Inside Container
         run: docker exec student_service_container printenv | grep MONGO_URI
