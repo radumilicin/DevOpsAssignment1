@@ -30,16 +30,18 @@ jobs:
 
       - name: Run the Application Container
         run: |
-          docker run -d -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+          docker run -d \
+            -e MONGO_URI="mongodb://mongo:27017" \  # Correct hostname here
+            --name student_service_container \
+            -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
 
       - name: Wait for MongoDB to be Ready
         run: |
-          until docker exec student_service_container bash -c "nc -z mongo 27017"; do
+          until docker exec student_service_container sh -c "nc -z mongo 27017"; do
             echo "Waiting for MongoDB to be ready..."
             sleep 5
           done
           echo "MongoDB is ready!"
-
 
       - name: Print MongoDB URI Inside Container
         run: docker exec student_service_container printenv | grep MONGO_URI
