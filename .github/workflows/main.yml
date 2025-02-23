@@ -4,7 +4,6 @@ env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
   MONGO_URI: mongodb://mongo:27017
-
 jobs:
   build:
     runs-on: ubuntu-latest
