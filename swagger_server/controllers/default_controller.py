@@ -18,6 +18,7 @@ def add_student(body=None):
             print("in try")
             # Get JSON directly from the request body
             student = Student.from_dict(body)
+            print("student = " + body)
             student_id, status_code = add(student)  # Unpack tuple correctly
             
             if status_code != 200:
