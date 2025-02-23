@@ -43,7 +43,7 @@ def get_student_by_id(student_id):
         if student is None:
             return jsonify({"error": "Student not found"}), 404
         else:
-            print("Student = " + jsonify(student))
+            print("Student = " + jsonify(student.text))
         return jsonify(student), 200
     except Exception as e:
         print(f"Error: {e}")
