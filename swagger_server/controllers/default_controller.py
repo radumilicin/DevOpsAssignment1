@@ -3,7 +3,7 @@ import six
 from swagger_server.models.student import Student
 from swagger_server.service.student_service_mongo import *
 from swagger_server import util
-from flask import jsonify
+from flask import json, jsonify
 
 def add_student(body=None):
     """Add a new student
@@ -31,6 +31,7 @@ def add_student(body=None):
     
     return jsonify({"error": "Invalid content type"}), 400
 
+
 def get_student_by_id(student_id):
     """Gets student
     Returns a single student
@@ -43,11 +44,15 @@ def get_student_by_id(student_id):
         if student is None:
             return jsonify({"error": "Student not found"}), 404
         else:
-            print("Student = " + jsonify(student.text))
+            # Assuming 'student' is a dictionary or an object that can be converted to JSON
+            student_json = json.dumps(student)  # Convert student to a JSON string for printing
+            print("Student = " + student_json)
+        
         return jsonify(student), 200
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
 
 def delete_student(student_id):
     """Delete student
