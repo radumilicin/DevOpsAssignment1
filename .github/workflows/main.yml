@@ -30,7 +30,10 @@ jobs:
 
       - name: Run the Application Container
         run: |
-          docker run -d --network="host" -e MONGO_URI="mongodb://localhost:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+          docker run -d --network service:mongo \
+          -e MONGO_URI="mongodb://mongo:27017" \
+          --name student_service_container \
+          -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
 
 
       - name: Wait for MongoDB to be Ready
