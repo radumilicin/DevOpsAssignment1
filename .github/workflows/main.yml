@@ -20,14 +20,18 @@ jobs:
         run: |
           docker build . -t $REPO_NAME/$IMAGE_NAME
 
-      - name: run docker
-        run: |
-          docker run -d -e MONGO_URI="${{ env.MONGO_URI }}" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest && \
-            docker ps
+      - name: Create a network
+        run: docker network create my_network
 
-      - name: Wait for MongoDB to be ready
+      - name: Run the Application Container
         run: |
-          docker exec student_service_container mongosh --eval "db.runCommand({ ping: 1 })"
+          docker run -d --network my_network -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+
+      - name: Wait for MongoDB to be Ready
+        run: |
+          until docker exec mongo mongosh --eval "db.runCommand({ ping: 1 })"; do
+            echo "Waiting for MongoDB to be ready..."
+            sleep 5
           done
           echo "MongoDB is ready!"
 
