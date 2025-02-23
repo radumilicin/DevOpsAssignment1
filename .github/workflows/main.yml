@@ -18,25 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Docker Image
-        run: |
-          docker build . -t $REPO_NAME/$IMAGE_NAME
-
       - name: Run the Application Container
         run: |
-          docker run -d --network host -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
-
-      - name: Wait for MongoDB to be Ready
-        run: |
-          until echo "db.runCommand({ ping: 1 })" | mongosh "mongodb://localhost:27017" --quiet; do
-            echo "Waiting for MongoDB to be ready..."
-            sleep 5
-          done
-          echo "MongoDB is ready!"
-
+          docker run -d --network="host" -e MONGO_URI="mongodb://localhost:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+      
+      - name: Check MongoDB Logs
+        run: docker logs $(docker ps -q --filter ancestor=mongo)
+    
       - name: List Running Containers
         run: docker ps
-
 
       - name: Stream logs in the background
         run: |
