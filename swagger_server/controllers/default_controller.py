@@ -40,7 +40,7 @@ def get_student_by_id(student_id):
     :rtype: Student
     """
     try:
-        print("student_id = ", student_id)
+        print("student_id = ", json.dumps(student_id))
         student = get_by_id(student_id)
         if student is None:
             return jsonify({"error": "Student not found"}), 404
