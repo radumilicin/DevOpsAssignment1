@@ -14,16 +14,27 @@ jobs:
         image: mongo:latest
         ports:
           - 27017:27017
-
     steps:
       - uses: actions/checkout@v2
 
+      - name: Build docker
+        run: |
+          docker build . -t $REPO_NAME/$IMAGE_NAME
+
+      - name: Create a network
+        run: docker network create my_network
+
       - name: Run the Application Container
         run: |
-          docker run -d --network="host" -e MONGO_URI="mongodb://localhost:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
-      
-      - name: Check MongoDB Logs
-        run: docker logs $(docker ps -q --filter ancestor=mongo)
+          docker run -d --network my_network -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+
+      - name: Wait for MongoDB to be Ready
+        run: |
+          until docker exec mongo mongosh --eval "db.runCommand({ ping: 1 })"; do
+            echo "Waiting for MongoDB to be ready..."
+            sleep 5
+          done
+          echo "MongoDB is ready!" and the github actions response when I run it un until docker exec mongo mongosh --eval "db.runCommand({ ping: 1 })"; do
     
       - name: List Running Containers
         run: docker ps
