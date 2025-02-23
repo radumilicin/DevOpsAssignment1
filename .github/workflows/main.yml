@@ -30,10 +30,7 @@ jobs:
 
       - name: Run the Application Container
         run: |
-          docker run -d \
-            -e MONGO_URI="mongodb://mongo:27017" \  # Correct hostname here
-            --name student_service_container \
-            -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+          docker run -d -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
 
       - name: Wait for MongoDB to be Ready
         run: |
