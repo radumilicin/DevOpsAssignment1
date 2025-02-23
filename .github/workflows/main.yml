@@ -4,7 +4,7 @@ on: [push]
 env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
-  MONGO_URI: mongodb://mongo:27017  # GitHub sets 'mongo' as the hostname for the service
+  MONGO_URI: mongodb://localhost:27017  # Use 'localhost' since we use GitHub's built-in Mongo service
 
 jobs:
   build:
@@ -14,28 +14,35 @@ jobs:
         image: mongo:latest
         ports:
           - 27017:27017
+
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build docker
+      - name: Debug Running Containers
+        run: docker ps -a
+
+      - name: Check MongoDB Logs
+        run: docker logs $(docker ps -q --filter ancestor=mongo) || echo "No MongoDB logs found"
+
+      - name: Build Docker Image
         run: |
           docker build . -t $REPO_NAME/$IMAGE_NAME
 
-      - name: Create a network
-        run: docker network create my_network
-
       - name: Run the Application Container
         run: |
-          docker run -d --network my_network -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+          docker run -d --network="host" -e MONGO_URI="mongodb://localhost:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
 
-      - name: Wait for MongoDB to be Ready
+      - name: Wait for MongoDB to Be Ready
         run: |
-          until docker exec mongo mongosh --eval "db.runCommand({ ping: 1 })"; do
+          until mongosh --host localhost --eval "db.runCommand({ ping: 1 })"; do
             echo "Waiting for MongoDB to be ready..."
             sleep 5
           done
-          echo "MongoDB is ready!" and the github actions response when I run it un until docker exec mongo mongosh --eval "db.runCommand({ ping: 1 })"; do
-    
+          echo "MongoDB is ready!"
+
+      - name: Print MongoDB URI Inside Container
+        run: docker exec student_service_container printenv | grep MONGO_URI
+
       - name: List Running Containers
         run: docker ps
 
@@ -46,11 +53,12 @@ jobs:
           (docker logs -f student_service_container | tee logs/container.log) &
           echo "Docker logs streaming started in background."
 
-      - name: Check if server is up
+      - name: Check if Server is Up
         run: |
+          sleep 10  # Give the app time to start
           curl http://localhost:8080/tutorial/1.0.0/ui/
 
-      - name: "Check files existence"
+      - name: "Check Files Existence"
         uses: andstor/file-existence-action@v2
         with:
           files: "postman/collection.json,postman/environment.json"
@@ -64,12 +72,12 @@ jobs:
           environment: postman/environment.json
           reporters: cli
           bail: true
-        continue-on-error: true  # This allows the next steps to run even if the tests fail.
+        continue-on-error: true  # Allows next steps to run even if tests fail.
 
       - name: Fetch logs from server container
         run: docker logs student_service_container
 
-      - name: Check if we failed
+      - name: Check if Tests Failed
         id: fail-check
         shell: bash
         env:
@@ -83,16 +91,16 @@ jobs:
             echo "failed=true" >> $GITHUB_OUTPUT;
           fi
 
-      - name: fail if empty
+      - name: Fail if Tests Were Empty
         if: ${{ steps.fail-check.outputs.failed == 'true' }}
         run: exit 1
 
-      - name: Login to Container Registry
+      - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Push image to docker hub Container Registry
+      - name: Push Image to Docker Hub
         run: | 
           docker push $REPO_NAME/$IMAGE_NAME
