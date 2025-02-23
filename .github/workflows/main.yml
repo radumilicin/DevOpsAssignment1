@@ -4,7 +4,7 @@ on: [push]
 env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
-  MONGO_URI: mongodb://localhost:27017  # Use 'localhost' since we use GitHub's built-in Mongo service
+  MONGO_URI: mongodb://localhost:27017  # Use 'localhost' for both containers to communicate
 
 jobs:
   build:
@@ -30,11 +30,11 @@ jobs:
 
       - name: Run the Application Container
         run: |
-          docker run -d -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+          docker run -d --network host -e MONGO_URI="mongodb://localhost:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
 
       - name: Wait for MongoDB to be Ready
         run: |
-          until docker exec student_service_container sh -c "nc -z mongo 27017"; do
+          until docker exec student_service_container sh -c "nc -z localhost 27017"; do
             echo "Waiting for MongoDB to be ready..."
             sleep 5
           done
