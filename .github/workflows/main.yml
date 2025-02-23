@@ -1,9 +1,10 @@
-name: Build Test and push
+name: Build Test and Push
 on: [push]
+
 env:
   IMAGE_NAME: student_service
   REPO_NAME: radu305
-  MONGO_URI: mongodb://mongo:27017
+  MONGO_URI: mongodb://mongo:27017  # GitHub sets 'mongo' as the hostname for the service
 
 jobs:
   build:
@@ -13,27 +14,29 @@ jobs:
         image: mongo:latest
         ports:
           - 27017:27017
+
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build docker
+      - name: Build Docker Image
         run: |
           docker build . -t $REPO_NAME/$IMAGE_NAME
 
-      - name: Create a network
-        run: docker network create my_network
-
       - name: Run the Application Container
         run: |
-          docker run -d --network my_network -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
+          docker run -d --network host -e MONGO_URI="mongodb://mongo:27017" --name student_service_container -p 8080:8080 $REPO_NAME/$IMAGE_NAME:latest
 
       - name: Wait for MongoDB to be Ready
         run: |
-          until docker exec mongo mongosh --eval "db.runCommand({ ping: 1 })"; do
+          until echo "db.runCommand({ ping: 1 })" | mongosh "mongodb://localhost:27017" --quiet; do
             echo "Waiting for MongoDB to be ready..."
             sleep 5
           done
           echo "MongoDB is ready!"
+
+      - name: List Running Containers
+        run: docker ps
+
 
       - name: Stream logs in the background
         run: |
