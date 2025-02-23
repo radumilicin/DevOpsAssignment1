@@ -40,9 +40,10 @@ def add(student):
 def get_by_id(student_id):
     try:
         student = students_collection.find_one({"student_id": student_id})
+
+
         if not student:
             return 'not found', 404
-        
         student["_id"] = str(student["_id"])     
         return student
 
