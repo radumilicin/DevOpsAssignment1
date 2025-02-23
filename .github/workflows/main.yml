@@ -27,9 +27,7 @@ jobs:
 
       - name: Wait for MongoDB to be ready
         run: |
-          until curl --silent --fail http://localhost:27017; do
-            echo "Waiting for MongoDB to be ready..."
-            sleep 5
+          docker exec student_service_container mongosh --eval "db.runCommand({ ping: 1 })"
           done
           echo "MongoDB is ready!"
 
