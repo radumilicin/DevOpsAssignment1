@@ -32,25 +32,36 @@ def add_student(body=None):
     
     return jsonify({"error": "Invalid content type"}), 400
 
+from flask import jsonify, request
+from bson.objectid import ObjectId
 
 def get_student_by_id(student_id):
     """Gets student
     Returns a single student
     :param student_id: the uid
-    :type student_id: int
+    :type student_id: (str, dict, object)
     :rtype: Student
     """
     try:
-        print("student_id = ", str(student_id))
-        student = get_by_id(student_id)
-        if student is None:
-            return jsonify({"error": "Student not found"}), 404
-        else:
-            # Assuming 'student' is a dictionary or an object that can be converted to JSON
-            student_json = json.dumps(student)  # Convert student to a JSON string for printing
-            print("Student = " + student_json)
+        # Convert student_id to string if it's an object
+        if isinstance(student_id, dict):  
+            return jsonify({"error": "Invalid student_id: received an object"}), 400
+        elif not isinstance(student_id, str):  
+            student_id = str(student_id)  # Convert non-string types (like int) to string
+
+        print("student_id = ", student_id)
+
+        student, status = get_by_id(student_id)  # get_by_id returns (student, status_code)
         
+        if status == 404:
+            return jsonify({"error": "Student not found"}), 404
+        elif status == 400:
+            return jsonify({"error": student}), 400  # Error message from get_by_id
+
+        print("Student found:", student)
+
         return jsonify(student), 200
+
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "Internal server error"}), 500
