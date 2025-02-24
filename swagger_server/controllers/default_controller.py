@@ -42,23 +42,39 @@ def get_student_by_id(student_id):
     :rtype: Student
     """
     try:
-        # Input validation
-        if isinstance(student_id, dict):
-            return jsonify({"error": "Invalid student_id: received an object"}), 400
-        elif not isinstance(student_id, str):
-            student_id = str(student_id)  # Convert non-string types to string
-            
-        print(f"Looking up student_id = {student_id}")
+        # Debug print to see what we're actually receiving
+        print(f"Raw student_id input type: {type(student_id)}")
+        print(f"Raw student_id value: {student_id}")
         
-        # Get student data from database
-        student, status = get_by_id(student_id)  # get_by_id returns (student, status_code)
+        # More thorough input validation
+        if student_id is None:
+            return jsonify({"error": "student_id cannot be None"}), 400
+            
+        # Handle case where it might be a string representation of an object
+        if isinstance(student_id, str):
+            if student_id.startswith('{') or student_id.startswith('['):
+                return jsonify({"error": "Invalid student_id: received a string containing an object"}), 400
+                
+        # Check for various object-like types
+        if hasattr(student_id, '__dict__') or isinstance(student_id, (dict, list, set, tuple)):
+            return jsonify({"error": f"Invalid student_id: received {type(student_id).__name__}"}), 400
+            
+        # Convert to string if it's a valid ID type (like int)
+        try:
+            student_id = str(student_id)
+        except Exception as e:
+            return jsonify({"error": f"Could not convert student_id to string: {e}"}), 400
+            
+        print(f"Processed student_id = {student_id}")
+        
+        # Rest of the function remains the same
+        student, status = get_by_id(student_id)
         
         if status == 404:
             return jsonify({"error": "Student not found"}), 404
         elif status == 400:
-            return jsonify({"error": student}), 400  # Error message from get_by_id
+            return jsonify({"error": student}), 400
             
-        # Transform data to match expected response format
         response = {
             "student_id": student_id,
             "first_name": student.get("first_name"),
@@ -71,7 +87,6 @@ def get_student_by_id(student_id):
             ]
         }
         
-        print(f"Returning student data: {response}")
         return jsonify(response), 200
         
     except Exception as e:
