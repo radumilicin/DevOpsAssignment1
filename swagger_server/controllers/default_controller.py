@@ -36,7 +36,6 @@ def add_student(body=None):
 def get_student_by_id(student_id):
     """Gets student by ID
     Returns a single student with their grade records
-    
     :param student_id: the uid
     :type student_id: (str, dict, object)
     :rtype: Student
@@ -45,67 +44,39 @@ def get_student_by_id(student_id):
         print(f"Raw student_id input type: {type(student_id)}")
         print(f"Raw student_id value: {student_id}")
 
-        # If we get "[object Object]", try to extract the actual ID from the request URL
+        # Handle the [object Object] case
         if student_id == "[object Object]":
-            # Assuming you have access to the request object from Flask
-            from flask import request
-            # Get the actual URL path
-            path = request.path
-            # Try to extract the ID from the path
-            try:
-                # Split the path and get the last segment
-                actual_id = path.split('/')[-1]
-                if actual_id and actual_id != "[object Object]":
-                    student_id = actual_id
-                else:
-                    return jsonify({"error": "Invalid student ID format"}), 400
-            except:
-                return jsonify({"error": "Could not parse student ID from request"}), 400
-
-        # Clean and validate the ID
-        try:
-            # Remove any whitespace
-            student_id = str(student_id).strip()
-            
-            # Basic validation
-            if not student_id:
-                return jsonify({"error": "Student ID cannot be empty"}), 400
-                
-            if len(student_id) > 50:  # Arbitrary max length
-                return jsonify({"error": "Student ID too long"}), 400
-                
-            # If you expect numeric IDs, uncomment this:
-            # if not student_id.isdigit():
-            #     return jsonify({"error": "Student ID must be numeric"}), 400
-                
-            print(f"Processed student_id = {student_id}")
-            
-            # Get student data
+            # For test cases, we need to get the student using a valid ObjectId
+            # You might need to adjust this based on your test data
             student, status = get_by_id(student_id)
-            
-            if status == 404:
-                return jsonify({"error": "Student not found"}), 404
-            elif status == 400:
-                return jsonify({"error": student}), 400
-                
-            # Format response
-            response = {
-                "student_id": student_id,
-                "first_name": student.get("first_name"),
-                "last_name": student.get("last_name"),
-                "grade_records": [
-                    {
-                        "subject_name": subject,
-                        "grade": grade
-                    } for subject, grade in student.get("grades", {}).items()
-                ]
-            }
-            
-            return jsonify(response), 200
-            
-        except ValueError as ve:
-            return jsonify({"error": f"Invalid student ID format: {str(ve)}"}), 400
-            
+            if status != 200:
+                return jsonify({"error": "Student not found"}), status
+        else:
+            # Normal case - try to get student with the provided ID
+            student, status = get_by_id(student_id)
+            if status != 200:
+                return jsonify({"error": "Student not found"}), status
+
+        # Transform MongoDB document into expected response format
+        grade_records = []
+        if "grades" in student:
+            # Convert grades dict to array format expected by tests
+            for subject, grade in student["grades"].items():
+                grade_records.append({
+                    "subject_name": subject,
+                    "grade": grade
+                })
+
+        response = {
+            "student_id": student.get("_id", student_id),  # Use MongoDB _id or passed id
+            "first_name": student.get("first_name", ""),
+            "last_name": student.get("last_name", ""),
+            "grade_records": grade_records
+        }
+
+        print("Sending response:", response)  # Debug print
+        return jsonify(response), 200
+
     except Exception as e:
         print(f"Error in get_student_by_id: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500

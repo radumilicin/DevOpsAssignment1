@@ -55,7 +55,7 @@ jobs:
 
       - name: Check if Server is Up
         run: |
-          sleep 10  # Give the app time to start
+          sleep 5  # Give the app time to start
           curl http://localhost:8080/tutorial/1.0.0/ui/
 
       - name: "Check Files Existence"
