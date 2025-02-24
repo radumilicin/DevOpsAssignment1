@@ -45,7 +45,7 @@ def add(student):
     # Insert student and return the generated ID
     result = students_collection.insert_one(student_data)
 
-    return str(result.inserted_id), 200
+    return str(result), 200
 
 def get_by_id(student_id):
     try:
