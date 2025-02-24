@@ -19,12 +19,12 @@ def add_student(body=None):
             # Get JSON directly from the request body
             student = Student.from_dict(body)
             print("student = " + str(body))
-            student_id, status_code = add(student)  # Unpack tuple correctly
+            result, status_code = add(student)  # Unpack tuple correctly
             
             if status_code != 200:
                 return jsonify({"message": "Failed to add student"}), status_code
             
-            return jsonify({"message": "Added student", "student_id": student_id}), 200
+            return jsonify({"message": "Added student"}), 200
         
         except Exception as e:
             print(f"Error: {e}")

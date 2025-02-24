@@ -16,47 +16,51 @@ client = MongoClient(mongo_uri)
 # Set up MongoDB connection
 db = client["student_db"]
 students_collection = db["students"]
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+
+# Connect to MongoDB (modify as needed)
+client = MongoClient("mongodb://localhost:27017/")
+db = client["your_database"]
+students_collection = db["students"]
+
 
 def add(student):
     print("Adding student to MongoDB")
 
-    # Check if student already exists
-    existing_student = students_collection.find_one({
-        "student_id": student.student_id
-    })
+    # Ensure student dict has _id if provided
+    student_data = student.to_dict()
 
-    print("existing student: " + str(existing_student))
-    
-    if existing_student:
-        return 'already exists', 409
+    if "_id" in student_data:
+        try:
+            student_data["_id"] = ObjectId(student_data["_id"])  # Convert to ObjectId if provided
+        except:
+            return "Invalid _id format", 400
+
+        # Check if student with this _id exists
+        existing_student = students_collection.find_one({"_id": student_data["_id"]})
+        if existing_student:
+            return 'already exists', 409
 
     # Insert student and return the generated ID
-    result = students_collection.insert_one(student.to_dict())
+    result = students_collection.insert_one(student_data)
 
-    # print("result = " + str(result))
-    # student.student_id = str(result.inserted_id)
-    
-    return student.student_id, 200
+    return str(result.inserted_id), 200
 
-# when entered the student does not have an id
 def get_by_id(student_id):
     try:
-        ### 
-        # student = students_collection.find_one({"student_id": student_id})
-
-        ### check by the id that is given by MongoDB
-        student = students_collection.find_one({"_id": student_id})
-
+        obj_id = ObjectId(student_id)  # Ensure valid ObjectId
+        student = students_collection.find_one({"_id": obj_id})
 
         if not student:
             return 'not found', 404
-        else:
-            print(student)
-        student["_id"] = str(student["_id"])     
-        return student
+
+        student["_id"] = str(student["_id"])  # Convert ObjectId to string
+        return student, 200
 
     except Exception as e:
         return str(e), 400
+
 
 def delete(student_id):
     try:
