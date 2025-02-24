@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import os
+from flask import jsonify
 
 # print("MONGO_URI = " + os.getenv("MONGO_URI"))
 
@@ -37,9 +38,14 @@ def add(student):
     
     return student.student_id, 200
 
+# when entered the student does not have an id
 def get_by_id(student_id):
     try:
-        student = students_collection.find_one({"student_id": student_id})
+        ### 
+        # student = students_collection.find_one({"student_id": student_id})
+
+        ### check by the id that is given by MongoDB
+        student = students_collection.find_one({"_id": student_id})
 
 
         if not student:
