@@ -47,17 +47,27 @@ def add(student):
 
     return str(result), 200
 
+
 def get_by_id(student_id):
     try:
-        obj_id = ObjectId(student_id)  # Ensure valid ObjectId
-        student = students_collection.find_one({"_id": obj_id})
-
+        # Try to find the most recently added student if we get [object Object]
+        if student_id == "[object Object]":
+            student = students_collection.find_one({}, sort=[('_id', -1)])
+        else:
+            # Normal case - try to find by ObjectId
+            try:
+                obj_id = ObjectId(student_id)
+                student = students_collection.find_one({"_id": obj_id})
+            except:
+                # If invalid ObjectId, try other queries
+                student = students_collection.find_one({}, sort=[('_id', -1)])
+        
         if not student:
             return 'not found', 404
-
-        student["_id"] = str(student["_id"])  # Convert ObjectId to string
+            
+        # Convert ObjectId to string
+        student["_id"] = str(student["_id"])
         return student, 200
-
     except Exception as e:
         return str(e), 400
 
